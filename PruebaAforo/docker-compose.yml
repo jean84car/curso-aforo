@@ -1,0 +1,103 @@
+version: '3'
+services: 
+    eureka:
+        container_name: c_eureka
+        image: i_eureka_test
+        build:
+            context: ./eureka_server
+            dockerfile: Dockerfile
+        ports:
+            - "8761:8761"
+        networks:
+            - aforo255-test
+    zuul:
+        container_name: c_zuul
+        image: i_zuul_test
+        build:
+            context: ./gateway_server
+            dockerfile: Dockerfile
+        environment:
+            - "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka"
+            - "EUREKA_INSTANCE_PREFER_IP_ADDRESS=true"
+            - "PORT=8090"
+        ports:
+            - "8090:8090"
+        links:
+            - eureka
+        networks:
+            - aforo255-test
+    config:
+        container_name: c_config-server
+        image: i_config-server_test
+        build:
+            context: ./config-server
+            dockerfile: Dockerfile
+        ports:
+            - "8888:8888"
+        networks:
+            - aforo255-test
+    invoces:
+        container_name: c_invoces
+        image: i_invoces_test
+        build:
+            context: ./invoces_service
+            dockerfile: Dockerfile
+        environment: 
+            - "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka"
+            - "SPRING_DATASOURCE_URL=jdbc:postgresql://postgres12_test:5432/db_aforo"
+            - "SPRING_DATASOURCE_PASSWORD=123456"
+            - "EUREKA_INSTANCE_PREFER_IP_ADDRESS=true"
+            - "PORT=8180"
+        depends_on:
+            - eureka
+        links:
+            - eureka
+        ports:
+            - "8180:8180"
+        networks:
+            - aforo255-test
+    pays:
+        container_name: c_pays
+        image: i_pays_test
+        build:
+            context: ./pay_service
+            dockerfile: Dockerfile
+        environment:
+            - "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka"
+            - "SPRING_DATASOURCE_URL=jdbc:mysql://mysql8_test:3306/db_operation?serverTimezone=America/Lima&allowPublicKeyRetrieval=true&useSSL=false"
+            - "SPRING_DATASOURCE_PASSWORD=123456"
+            - "SPRING_CLOUD_CONFIG_URI=http://config:8888"
+            - "EUREKA_INSTANCE_PREFER_IP_ADDRESS=true"
+            - "PORT=8280"
+        depends_on:
+            - eureka
+            - config
+        links:
+            - eureka
+            - config
+        ports:
+            - "8280:8280"
+        networks:
+            - aforo255-test
+    transactions:
+        container_name: c_transactions
+        image: i_transaction_test
+        build:
+            context: ./transaction-service
+            dockerfile: Dockerfile
+        environment:
+            - "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka"
+            - "SPRING_DATA_MONGODB_URI=mongodb://mongodb_test:27017/db_transaction"
+            - "EUREKA_INSTANCE_PREFER_IP_ADDRESS=true"
+            - "PORT=8082"
+        depends_on:
+            - eureka
+        links:
+            - eureka
+        ports:
+            - "8082:8082"
+        networks:
+            - aforo255-test
+    
+networks:
+    aforo255-test:

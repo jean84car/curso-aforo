@@ -1,0 +1,44 @@
+server:
+  port: 8280
+  
+spring:
+  application:
+    name: pay-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/db_operation?serverTimezone=America/Lima&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: jeanjean
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa: 
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate.ddl-auto: create-drop
+    properties:
+      hibernate: 
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  kafka: 
+    template:
+      default-topic: transaction-events
+    producer: 
+      bootstrap-servers: servicekafka_test:9092
+      key-serializer: org.apache.kafka.common.serialization.IntegerSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    admin:
+      properties: 
+        bootstrap: 
+          servers: servicekafka_test:9092
+            
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka 
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    
+logging:
+  level:
+    org:
+      hibernate.SQL: debug  
+  
+  
